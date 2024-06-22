@@ -13,7 +13,7 @@ abstract class Controller
         return Auth::user();
     }
 
-    
+
     /**
      * handle success & error messages
      * @param string $message

@@ -35,28 +35,32 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return $this->res("", $validator->errors(), 0);
         }
-                
-        
-        $credentials = $request->only(['email','password']);
+
+
+        $credentials = $request->only(['email', 'password']);
+        $success = [];
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            return $this->res("Success!", $user, 1);
+            $success['user'] = $user;
+            $success['token'] = $user->createToken("optic")->plainTextToken;
+            return $this->res("Success!", $success, 1);
         }
 
-        
+
         return $this->res("Invalid email address or password", [], 0);
     }
 
-    
-    
+
+
     /**
      * Logout Method
      */
     public function logout(Request $request)
     {
         // Auth::guard()->logout();
-
+        $user = Auth::user();
+        $user->tokens()->delete();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
