@@ -103,7 +103,7 @@ class ClientController extends Controller
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:255',
-            // 'image' => 'string',
+            'image' => 'nullable|string',
         ]);
 
 
@@ -118,27 +118,19 @@ class ClientController extends Controller
 
         $client = new Client();
 
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $ext = $file->getClientOriginalExtension();
-
-            // file type must be an image (jpeg, png, jpg)
-            if (!in_array($ext, ['jpeg', 'png', 'jpg'])) {
-                return response()->json('Try with another image', 200);
-            }
-
-            $filename = time() . '.' . $ext;
-            $file->move('assets/uploads/clients/', $filename);
-            $client->image = $filename;
-        } else {
-            $client->image = 'default.jpg';
+        
+        $avatarPath = null;
+        if ($request->has('image')) {
+            $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
         }
+
 
         $client->name = $request->input('name');
         $client->lname = $request->input('lname');
         $client->phone = $request->input('phone');
         $client->address = $request->input('address');
         $client->city = $request->input('city');
+        $client->image = $avatarPath;
 
         $client->save();
 
@@ -164,7 +156,7 @@ class ClientController extends Controller
             'city' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:255',
-            // 'image' => 'string',
+            'image' => 'nullable|string',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -173,34 +165,22 @@ class ClientController extends Controller
             ], 422);
         }
 
-        if ($request->hasFile('image')) {
-            // Upload and save the new image
-            $file = $request->file('image');
-            $ext = $file->getClientOriginalExtension();
 
-            // file type must be an image (jpeg, png, jpg)
-            if (!in_array($ext, ['jpeg', 'png', 'jpg'])) {
-                return response()->json('Try with another image', 200);
-            }
-
-            $filename = time() . '.' . $ext;
-            $file->move(public_path('assets/uploads/clients/'), $filename);
-            
-            // Update the client's image
-            if ($client->image !== 'default.jpg') {
-                $existingImagePath = public_path('assets/uploads/clients/' . $client->image);
-                if (file_exists($existingImagePath)) {
-                    unlink($existingImagePath);
-                }
-            }
-
-            $client->image = $filename;
+        $avatarPath = null;
+        if ($request->has('image')) {
+            $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
         }
+
         $client->name = $request->input('name');
         $client->lname = $request->input('lname');
         $client->city = $request->input('city');
         $client->address = $request->input('address');
         $client->phone = $request->input('phone');
+
+        if (!empty($avatarPath)) {
+            $client->image = $avatarPath;
+        }
+        
         $client->update();
 
         return response()->json([

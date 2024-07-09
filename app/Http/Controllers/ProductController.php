@@ -125,32 +125,6 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
 
-        // if ($request->hasFile('image')) {
-        //     // Upload and save the new image
-        //     $file = $request->file('image');
-        //     $fileExt = $file->getClientOriginalExtension();
-
-        //     // file type must be an image (jpeg, png, jpg)
-        //     if (!in_array($fileExt, ['jpeg', 'png', 'jpg','PNG'])) {
-        //         return response()->json('Try with another image', 200);
-        //     }
-
-        //     // create a new name
-        //     $filename = time() . '.' . $fileExt;
-
-        //     // store image with new name
-        //     $file->move(public_path('assets/uploads/products/'), $filename);
-
-        //     // Delete old image
-        //     $existingImagePath = public_path('assets/uploads/products/' . $product->image);
-        //     if (file_exists($existingImagePath)) {
-        //         unlink($existingImagePath);
-        //     }
-
-        //     // Update the product's image
-        //     $product->image = $filename;
-        // }
-
         $avatarPath = null;
         if ($request->has('image')) {
             $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
