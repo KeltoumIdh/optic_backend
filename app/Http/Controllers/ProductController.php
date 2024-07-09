@@ -53,7 +53,7 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'quantity' => 'required|integer',
             'message' => 'nullable|string',
-            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -65,25 +65,21 @@ class ProductController extends Controller
 
         $product = new Product();
 
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $ext = $file->getClientOriginalExtension();
-            $filename = time() . '.' . $ext;
-            $file->move('assets/uploads/products/', $filename);
-            $product->image = $filename;
-        } else {
-            $product->image = 'default.jpg';
+
+        $avatarPath = null;
+        if ($request->has('image')) {
+            $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
         }
+
 
         $product->name = $request->input('name');
         $product->reference = $request->input('reference');
         $product->price = $request->input('price');
         $quantity = $request->input('quantity');
-
         $product->initial_quantity = $quantity;
         $product->quantity_available = $quantity;
         $product->quantity_sold = 0;
-
+        $product->image = $avatarPath;
         $low_stock_threshold = 0.1 * $quantity; // 10% of initial quantity
         if ($quantity == 0) {
             $status = 'Rupture de stock';
@@ -92,10 +88,10 @@ class ProductController extends Controller
         } else {
             $status = 'Disponible';
         }
-
         $product->status = $status;
         $product->message = $request->input('message');
         $product->save();
+
 
         return  response()->json([
             'status' => 'success',
