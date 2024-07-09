@@ -50,5 +50,7 @@ abstract class Controller
 
             return $file_path ?? null;
         }
+
+        return null;
     }
 }

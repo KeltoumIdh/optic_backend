@@ -151,7 +151,7 @@ class ProductController extends Controller
         //     $product->image = $filename;
         // }
 
-        $avatarPath = $product->image;
+        $avatarPath = null;
         if ($request->has('image')) {
             $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
         }
@@ -162,7 +162,10 @@ class ProductController extends Controller
         $product->price = $request->input('price');
         $product->quantity_available = $request->input('quantity_available');
         $product->quantity_sold = $request->input('quantity_sold');
-        $product->image = $avatarPath;
+        
+        if (!empty($avatarPath)) {
+            $product->image = $avatarPath;
+        }
 
         // Update status based on quantity
         $quantity = $request->input('quantity_available');
