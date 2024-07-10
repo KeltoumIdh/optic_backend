@@ -213,7 +213,7 @@ class OrderController extends Controller
             'remain_price' => 'required|numeric|min:0',
             'total_price' => 'required|numeric|min:0',
             'reference_credit' => 'nullable|string', // Validate if provided and is a string
-            // 'file' => 'nullable|string',
+            'file' => 'nullable|string',
             'client_traita' => 'nullable|string',
             'traita_date' => 'nullable|date',
         ];
@@ -231,6 +231,11 @@ class OrderController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $filePath = null;
+        if ($request->has('file')) {
+            $filePath = $this->uploadBase64Image($request->input('file'), 'uploads/files/');
+        }
+
         $order = new Order();
         $order->client_id = $request->input('client_id');
         $order->cart = json_encode($request->input('cart'));
@@ -244,18 +249,8 @@ class OrderController extends Controller
         $order->total_price = $request->input('total_price');
         $order->traita_date = $request->input('traita_date');
 
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $ext = $file->getClientOriginalExtension();
-
-            // file type must be an file (jpeg, png, jpg)
-            if (!in_array($ext, ['jpeg', 'png', 'jpg'])) {
-                return response()->json('Try with another file', 200);
-            }
-
-            $filename = time() . '.' . $ext;
-            $file->move('assets/uploads/files/', $filename);
-            $order->payement_file = $filename;
+        if (!empty($filePath)) {
+            $order->payement_file = $filePath;
         } else {
             $order->payement_file = 'default.jpg';
         }
