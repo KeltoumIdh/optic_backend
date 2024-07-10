@@ -330,7 +330,7 @@ class OrderController extends Controller
             // 'remain_price' => 'required|numeric|min:0',
             // 'total_price' => 'required|numeric|min:0',
             'reference_credit' => 'nullable|string',
-
+            'payement_file' => 'nullable|string',
         ]);
 
 
@@ -338,30 +338,13 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
 
 
-        if ($request->hasFile('payement_file')) {
-            // Upload and save the new payement_file
-            $file = $request->file('payement_file');
-            $fileExt = $file->getClientOriginalExtension();
-
-            // file type must be an payement_file (jpeg, png, jpg)
-            if (!in_array($fileExt, ['jpeg', 'png', 'jpg','PNG'])) {
-                return response()->json('Try with another payement_file', 200);
-            }
-
-            // create a new name
-            $filename = time() . '.' . $fileExt;
-
-            // store payement_file with new name
-            $file->move(public_path('assets/uploads/files/'), $filename);
-
-            // Delete old payement_file
-            $existingImagePath = public_path('assets/uploads/files/' . $order->payement_file);
-            if (file_exists($existingImagePath)) {
-                unlink($existingImagePath);
-            }
-
-            // Update the order's payement_file
-            $order->payement_file = $filename;
+        $filePath = null;
+        if ($request->has('payement_file')) {
+            $filePath = $this->uploadBase64Image($request->input('payement_file'), 'uploads/files/');
+        }
+        
+        if (!empty($filePath)) {
+            $order->payement_file = $filePath;
         }
 
         // Update other fields
@@ -370,6 +353,15 @@ class OrderController extends Controller
         $order->paid_price = $request->input('paid_price');
         $order->remain_price = $order->total_price - $request->input('paid_price');
         $order->reference_credit = $request->input('reference_credit');
+
+        // Check if the payment is made in full
+        if ($request->input('paid_price') >= $order->total_price) {
+            $order->payment_status = 'completed';
+            $order->order_status = 'completed';
+        } else {
+            $order->payment_status = 'pending';
+            $order->order_status = 'processing';
+        }
 
 
         // Save the order instance
