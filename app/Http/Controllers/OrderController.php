@@ -343,6 +343,7 @@ class OrderController extends Controller
             // 'total_price' => 'required|numeric|min:0',
             'reference_credit' => 'nullable|string',
             'payement_file' => 'nullable|string',
+            'status' => 'required|string',
         ]);
 
 
@@ -366,15 +367,16 @@ class OrderController extends Controller
         $order->remain_price = $order->total_price - $request->input('paid_price');
         $order->reference_credit = $request->input('reference_credit');
 
-        // Check if the payment is made in full
-        if ($request->input('paid_price') >= $order->total_price) {
-            $order->payment_status = 'completed';
-            $order->order_status = 'completed';
-        } else {
-            $order->payment_status = 'pending';
-            $order->order_status = 'processing';
-        }
+        // // Check if the payment is made in full
+        // if ($request->input('paid_price') >= $order->total_price) {
+        //     $order->payment_status = 'completed';
+        //     $order->order_status = 'completed';
+        // } else {
+        //     $order->payment_status = 'pending';
+        //     $order->order_status = 'processing';
+        // }
 
+        $order->order_status = $request->input('status');
 
         // Save the order instance
         $order->save();
