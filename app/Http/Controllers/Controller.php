@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Product;
 
 abstract class Controller
 {
@@ -52,5 +53,44 @@ abstract class Controller
         }
 
         return null;
+    }
+
+    
+    /**
+     * Update products Quantity after ordering
+     * @param object $productsArr
+     * @return boolean
+     */
+    public function updateProductQNT($productsArr = [])
+    {
+
+        if (empty($productsArr)) {
+            return false;
+        }
+
+
+        foreach ($productsArr as $product)
+        {
+            $id = $product["product_id"];
+            $qnt = $product["quantity"];
+            
+            // get product
+            $productData = Product::findOrFail($id);
+
+
+            $newAvailableQuantity = $productData->quantity_available - $qnt;
+            $newSoldQuantity = $productData->quantity_sold + $qnt;
+
+            // update data
+            $productData->quantity_available = $newAvailableQuantity;
+            $productData->quantity_sold = $newSoldQuantity;
+            if ($newAvailableQuantity === 0) {
+                $productData->status = "Stock faible";
+            }
+            $productData->update();
+        }
+
+
+        return true;
     }
 }

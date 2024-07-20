@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Order;
 use App\Models\Product;
@@ -269,17 +270,28 @@ class OrderController extends Controller
             $order->payment_status = 'pending';
             $order->order_status = 'processing';
         }
+
+
         // payment_status:
         // Pending: The payment has been initiated but not completed.
         // Completed: The payment has been successfully processed.
         // Failed: The payment processing has failed.
+
         // order_status:
         // Processing: The order has been received and is being processed.
         // Shipped: The order has been shipped to the customer.
         // Delivered: The order has been successfully delivered to the customer.
         // Cancelled: The order has been cancelled.
 
-        $order->save();
+
+        if ($order->save())
+        {
+            // update the ordered products
+            $this->updateProductQNT($request->cart["productsCart"]);
+        }
+
+
+
         // return redirect('/orders')->with('status', 'Order created successfully');
         return response()->json(['status' => 'Order created successfully']);
     }
