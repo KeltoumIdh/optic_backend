@@ -286,6 +286,13 @@ class OrderController extends Controller
 
         if ($order->save())
         {
+            
+            $this->saveThisMove([
+                "type" => 'order_1',
+                "data" => $order->only('id', 'client_id', 'cart')
+            ]);
+
+
             // update the ordered products
             $this->updateProductQNT($request->cart["productsCart"]);
         }
@@ -380,6 +387,13 @@ class OrderController extends Controller
 
         // Save the order instance
         $order->save();
+        
+        
+        $this->saveThisMove([
+            "type" => 'order_2',
+            "data" => $order->only('id')
+        ]);
+
 
         return response()->json($order, 200);
     }

@@ -58,12 +58,14 @@ Route::controller(CartController::class)->group(function () {
 
 //Users
 Route::controller(userController::class)->group(function () {
-    Route::get('/users', 'index');
-    Route::post('/users/add', 'create');
-    Route::get('/users/edit/{id}', 'edit');
-    Route::put('/users/update/{id}', 'update');
-    Route::delete('/users/delete/{id}', 'delete');
-    Route::post('/users/update/password', 'updatePassword');
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::get('/users', 'index');
+        Route::post('/users/add', 'create');
+        Route::get('/users/edit/{id}', 'edit');
+        Route::put('/users/update/{id}', 'update');
+        Route::delete('/users/delete/{id}', 'delete');
+        Route::post('/users/update/password', 'updatePassword');
+    });
 });
 
 

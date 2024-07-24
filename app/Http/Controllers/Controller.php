@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Product;
+use App\Models\Activity;
+
 
 abstract class Controller
 {
@@ -92,5 +94,43 @@ abstract class Controller
 
 
         return true;
+    }
+
+
+    /**
+     * save all activities logs.
+     * @param array $arr
+     */
+    public function saveThisMove(array $arr = [])
+    {
+        // logs types
+        $logsTypes = [
+            "user_1" => "new_user_created",
+            "user_2" => "user_updated",
+            "user_3" => "user_deleted",
+            "user_4" => "password_updated",
+
+            "product_1" => "new_product_created",
+            "product_2" => "product_updated",
+            "product_3" => "product_deleted",
+
+            "client_1" => "new_client_created",
+            "client_2" => "client_updated",
+            "client_3" => "client_deleted",
+            
+            "order_1" => "new_order",
+            "order_2" => "order_updated",
+        ];
+
+        $logType = isset($arr["type"]) ? $logsTypes[$arr["type"]] : 'unknown';
+
+        $data = [
+            "user" => Auth::user()->id,
+            "type" => $logType,
+            "details" => $arr["data"],
+        ];
+
+        // save data
+        Activity::create($data);
     }
 }

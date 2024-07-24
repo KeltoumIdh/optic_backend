@@ -134,6 +134,13 @@ class ClientController extends Controller
 
         $client->save();
 
+
+        $this->saveThisMove([
+            "type" => 'client_1',
+            "data" => $client->only('id','name','lname','phone')
+        ]);
+
+
         return response()->json([
             'status' => 'success',
             'message' => 'Client added successfully',
@@ -183,6 +190,13 @@ class ClientController extends Controller
         
         $client->update();
 
+
+        $this->saveThisMove([
+            "type" => 'client_2',
+            "data" => $client->only('id','name','lname','phone')
+        ]);
+
+
         return response()->json([
             'status' => 'success',
             'message' => 'Client updated successfully',
@@ -209,6 +223,13 @@ class ClientController extends Controller
         }
 
         $client->delete();
+
+
+        $this->saveThisMove([
+            "type" => 'client_3',
+            "data" => $client->only('id')
+        ]);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Client deleted successfully',

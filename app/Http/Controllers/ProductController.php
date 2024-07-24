@@ -93,6 +93,12 @@ class ProductController extends Controller
         $product->save();
 
 
+        $this->saveThisMove([
+            "type" => 'product_1',
+            "data" => $product->only('id', 'name', 'reference', 'price')
+        ]);
+
+
         return  response()->json([
             'status' => 'success',
             'message' => 'Product added successfully',
@@ -157,6 +163,13 @@ class ProductController extends Controller
         // Save the product instance
         $product->save();
 
+
+        $this->saveThisMove([
+            "type" => 'product_2',
+            "data" => $product->only('id', 'name', 'reference', 'price')
+        ]);
+
+
         return response()->json($product, 200);
     }
 
@@ -170,6 +183,14 @@ class ProductController extends Controller
             }
         }
         $product->delete();
+
+
+        $this->saveThisMove([
+            "type" => 'product_4',
+            "data" => $product->only('id')
+        ]);
+
+
         return response()->json([
             'status' => 'success',
             'message' => 'Product deleted successfully',

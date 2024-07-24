@@ -45,6 +45,12 @@ class UserController extends Controller
     
         // Save the user
         $user->save();
+
+
+        $this->saveThisMove([
+            "type" => 'user_1',
+            "data" => $user->only('id','name','role','email')
+        ]);
     
         return response()->json([
             'status' => 'success',
@@ -74,6 +80,11 @@ class UserController extends Controller
 
         $user->update($request->all());
 
+        $this->saveThisMove([
+            "type" => 'user_2',
+            "data" => $user->only('id','name','role','email')
+        ]);
+
         return response()->json($user, 200);
     }
  
@@ -81,6 +92,11 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $user->delete();
+
+        $this->saveThisMove([
+            "type" => 'user_3',
+            "data" => $user->only('id')
+        ]);
 
         return response()->json(null, 204);
     }
@@ -97,6 +113,11 @@ class UserController extends Controller
         // Mettez à jour le mot de passe avec le nouveau mot de passe
         $user->password = Hash::make($request->password);
         $user->save();
+
+        $this->saveThisMove([
+            "type" => 'user_4',
+            "data" => $user->only('id')
+        ]);
 
         return response()->json(['message' => 'Password updated successfully']);
     }
