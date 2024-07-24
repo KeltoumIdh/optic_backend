@@ -18,4 +18,10 @@ class Activity extends Model
     protected $casts = [
         'details' => 'json',
     ];
+
+
+    public function User()
+    {
+        return $this->hasOne(User::class, 'id', 'user');
+    }
 }

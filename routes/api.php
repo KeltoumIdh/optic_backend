@@ -6,6 +6,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\userController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ActivitiesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -65,6 +66,13 @@ Route::controller(userController::class)->group(function () {
         Route::put('/users/update/{id}', 'update');
         Route::delete('/users/delete/{id}', 'delete');
         Route::post('/users/update/password', 'updatePassword');
+    });
+});
+
+//Users
+Route::controller(ActivitiesController::class)->group(function () {
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::get('/getAllActivities', 'getAllActivities');
     });
 });
 
