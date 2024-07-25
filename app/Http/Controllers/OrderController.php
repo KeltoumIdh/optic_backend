@@ -249,28 +249,23 @@ class OrderController extends Controller
         $order->date_debut_credit = Carbon::now();
         $order->total_price = $request->input('total_price');
         $order->traita_date = $request->input('traita_date');
-
-        if (!empty($filePath)) {
-            $order->payement_file = $filePath;
-        } else {
-            $order->payement_file = 'default.jpg';
-        }
-
+        $order->payement_file = $filePath;
         $order->client_traita = $request->input('client_traita');
+
         if ($request->input('is_credit') === false) {
             $order->payment_status = 'completed';
         } else {
             $order->payment_status = 'pending';
         }
+
         // Check if the payment is made in full
         if ($request->input('paid_price') >= $request->input('total_price')) {
             $order->payment_status = 'completed';
-            $order->order_status = 'completed';
         } else {
             $order->payment_status = 'pending';
-            $order->order_status = 'processing';
         }
-
+        
+        $order->order_status = 'in_delivery';
 
         // payment_status:
         // Pending: The payment has been initiated but not completed.
@@ -374,16 +369,23 @@ class OrderController extends Controller
         $order->remain_price = $order->total_price - $request->input('paid_price');
         $order->reference_credit = $request->input('reference_credit');
 
-        // // Check if the payment is made in full
-        // if ($request->input('paid_price') >= $order->total_price) {
-        //     $order->payment_status = 'completed';
-        //     $order->order_status = 'completed';
-        // } else {
-        //     $order->payment_status = 'pending';
-        //     $order->order_status = 'processing';
-        // }
+        // Check if the payment is made in full
+        if ($request->input('paid_price') >= $request->input('total_price')) {
+            $order->payment_status = 'completed';
+        } else {
+            $order->payment_status = 'pending';
+        }
 
         $order->order_status = $request->input('status');
+
+        if (!empty($request->input('status')) AND $request->input('status') === "delivered") {
+            $order->delivery_date = Carbon::now();
+        }
+        
+        if (!empty($request->input('status')) AND $request->input('status') === "canceled") {
+            $order->delivery_date = null;
+            $order->payment_status = 'failed';
+        }
 
         // Save the order instance
         $order->save();
