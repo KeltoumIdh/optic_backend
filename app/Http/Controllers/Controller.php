@@ -134,7 +134,7 @@ abstract class Controller
         $userAu = Auth::user();
 
         $data = [
-            "user" => $userAu['id'] || "",
+            "user" => $userAu->id || "",
             "type" => $logType,
             "details" => $arr["data"],
         ];
