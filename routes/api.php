@@ -24,7 +24,7 @@ Route::controller(ClientController::class)->group(function () {
     });
 });
 //PRODUCTS
-Route::controller(ProductController::class)->group(function () {
+Route::controller(ProductController::class)->middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/products', 'index');
         Route::get('/products/get/{id}', 'edit');
@@ -37,7 +37,7 @@ Route::controller(ProductController::class)->group(function () {
     });
 });
 //Orders
-Route::controller(OrderController::class)->group(function () {
+Route::controller(OrderController::class)->middleware(['auth:sanctum'])->group(function () {
     Route::get('/orders', 'index');
     Route::get('/orders/add', 'create');
     Route::post('/orders/products/add/{id}', 'createOrder');
@@ -53,7 +53,7 @@ Route::controller(OrderController::class)->group(function () {
 });
 // Route::apiResource('download-invoice', 'OrderController');
 //carts
-Route::controller(CartController::class)->group(function () {
+Route::controller(CartController::class)->middleware(['auth:sanctum'])->group(function () {
     Route::post('/carts/add', 'create');
 });
 
@@ -79,15 +79,17 @@ Route::controller(ActivitiesController::class)->group(function () {
 
 //Dashboard
 Route::controller(DashboardController::class)->group(function () {
-    Route::get('/total/product', 'totalProducts');
-    Route::get('/total/client', 'totalClients');
-    Route::get('/total/user', 'totalUsers');
-    Route::get('/total/order', 'totalOrders');
-    Route::get('/top/product', 'getTopSellingProducts');
-    Route::get('/stock/product', 'getAvailableProducts');
-    Route::get('/credit/clients', 'getClientCredit');
-    Route::get('/order/check', 'getPaymentOrders');
-    Route::get('/order/facture', 'getFactureOrders');
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::get('/total/product', 'totalProducts');
+        Route::get('/total/client', 'totalClients');
+        Route::get('/total/user', 'totalUsers');
+        Route::get('/total/order', 'totalOrders');
+        Route::get('/top/product', 'getTopSellingProducts');
+        Route::get('/stock/product', 'getAvailableProducts');
+        Route::get('/credit/clients', 'getClientCredit');
+        Route::get('/order/check', 'getPaymentOrders');
+        Route::get('/order/facture', 'getFactureOrders');
+    });
 });
 
 
