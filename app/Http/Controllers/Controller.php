@@ -87,8 +87,15 @@ abstract class Controller
             $productData->quantity_available = $newAvailableQuantity;
             $productData->quantity_sold = $newSoldQuantity;
             if ($newAvailableQuantity === 0) {
+                $productData->status = "Repture de stock";
+            }
+
+            else if ($newAvailableQuantity < 10) {
                 $productData->status = "Stock faible";
             }
+            
+            else {}
+            
             $productData->update();
         }
 
