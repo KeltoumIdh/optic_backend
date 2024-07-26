@@ -131,10 +131,8 @@ abstract class Controller
 
         $logType = isset($arr["type"]) ? $logsTypes[$arr["type"]] : 'unknown';
 
-        $userAu = Auth::user();
-
         $data = [
-            "user" => $userAu->id || "",
+            "user" => Auth::user()->id,
             "type" => $logType,
             "details" => $arr["data"],
         ];
