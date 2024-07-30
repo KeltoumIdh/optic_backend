@@ -146,8 +146,19 @@ class OrderController extends Controller
             $clientsQuery->where('status', $status);
         }
 
-        $clients = $clientsQuery->paginate(10);
+        $clients = $clientsQuery->withCount('orders') // Count the number of orders
+            ->orderBy('created_at', 'desc')
+            ->paginate(50);
 
+        foreach ($clients as $client) {
+            // Fetch the number of orders made by the client
+            $client->orders_count = Order::where('client_id', $client->id)->count();
+
+            // Check if the client has any remaining credit
+            $client->has_credit = Order::where('client_id', $client->id)
+                ->where('is_credit', 1)
+                ->exists();
+        }
         if ($request->wantsJson()) {
             return response()->json($clients);
         }
@@ -264,7 +275,7 @@ class OrderController extends Controller
         } else {
             $order->payment_status = 'pending';
         }
-        
+
         $order->order_status = 'in_delivery';
 
         // payment_status:
@@ -279,9 +290,8 @@ class OrderController extends Controller
         // Cancelled: The order has been cancelled.
 
 
-        if ($order->save())
-        {
-            
+        if ($order->save()) {
+
             $this->saveThisMove([
                 "type" => 'order_1',
                 "data" => $order->only('id', 'client_id', 'cart')
@@ -357,7 +367,7 @@ class OrderController extends Controller
         if ($request->has('payement_file')) {
             $filePath = $this->uploadBase64Image($request->input('payement_file'), 'uploads/files/');
         }
-        
+
         if (!empty($filePath)) {
             $order->payement_file = $filePath;
         }
@@ -378,19 +388,19 @@ class OrderController extends Controller
 
         $order->order_status = $request->input('status');
 
-        if (!empty($request->input('status')) AND $request->input('status') === "delivered") {
+        if (!empty($request->input('status')) and $request->input('status') === "delivered") {
             $order->delivery_date = Carbon::now();
         }
-        
-        if (!empty($request->input('status')) AND $request->input('status') === "canceled") {
+
+        if (!empty($request->input('status')) and $request->input('status') === "canceled") {
             $order->delivery_date = null;
             $order->payment_status = 'failed';
         }
 
         // Save the order instance
         $order->save();
-        
-        
+
+
         $this->saveThisMove([
             "type" => 'order_2',
             "data" => $order->only('id')
