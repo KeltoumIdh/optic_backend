@@ -294,7 +294,10 @@ class OrderController extends Controller
 
             $this->saveThisMove([
                 "type" => 'order_1',
-                "data" => $order->only('id', 'client_id', 'cart')
+                "data" => [
+                    "new_data" => $order->only('id', 'client_id', 'cart'),
+                    "old_data" => [],
+                ]
             ]);
 
 
@@ -361,6 +364,7 @@ class OrderController extends Controller
 
         // Find Product by id
         $order = Order::findOrFail($id);
+        $orderCurrentData = clone $order;
 
 
         $filePath = null;
@@ -403,7 +407,10 @@ class OrderController extends Controller
 
         $this->saveThisMove([
             "type" => 'order_2',
-            "data" => $order->only('id')
+            "data" => [
+                "new_data" => $order->only('id'),
+                "old_data" => $orderCurrentData->only('id'),
+            ]
         ]);
 
 

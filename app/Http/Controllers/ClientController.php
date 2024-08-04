@@ -137,7 +137,10 @@ class ClientController extends Controller
 
         $this->saveThisMove([
             "type" => 'client_1',
-            "data" => $client->only('id','name','lname','phone')
+            "data" => [
+                "new_data" => $client->only('id','name','lname','phone'),
+                "old_data" => [],
+            ]
         ]);
 
 
@@ -157,6 +160,8 @@ class ClientController extends Controller
     public function update($id, Request $request)
     {
         $client = client::find($id);
+        $clientCurrentData = clone $client;
+
         $validator = Validator::make($request->all(), [
             'name' => 'string|max:255',
             'lname' => 'nullable|string|max:255',
@@ -193,7 +198,10 @@ class ClientController extends Controller
 
         $this->saveThisMove([
             "type" => 'client_2',
-            "data" => $client->only('id','name','lname','phone')
+            "data" => [
+                "new_data" => $client->only('id','name','lname','phone'),
+                "old_data" => $clientCurrentData->only('id','name','lname','phone'),
+            ]
         ]);
 
 
@@ -227,7 +235,10 @@ class ClientController extends Controller
 
         $this->saveThisMove([
             "type" => 'client_3',
-            "data" => $client->only('id')
+            "data" => [
+                "new_data" => $client->only('id'),
+                "old_data" => [],
+            ]
         ]);
 
         return response()->json([
