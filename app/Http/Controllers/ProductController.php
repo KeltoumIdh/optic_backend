@@ -95,7 +95,10 @@ class ProductController extends Controller
 
         $this->saveThisMove([
             "type" => 'product_1',
-            "data" => $product->only('id', 'name', 'reference', 'price')
+            "data" => [
+                "new_data" => $product->only('id', 'name', 'reference', 'price'),
+                "old_data" => [],
+            ]
         ]);
 
 
@@ -129,6 +132,7 @@ class ProductController extends Controller
 
         // Find Product by id
         $product = Product::findOrFail($id);
+        $productCurrentData = clone $product;
 
 
         $avatarPath = null;
@@ -166,7 +170,10 @@ class ProductController extends Controller
 
         $this->saveThisMove([
             "type" => 'product_2',
-            "data" => $product->only('id', 'name', 'reference', 'price')
+            "data" => [
+                "new_data" => $product->only('id', 'name', 'reference', 'price'),
+                "old_data" => $productCurrentData->only('id', 'name', 'reference', 'price'),
+            ]
         ]);
 
 
@@ -187,7 +194,10 @@ class ProductController extends Controller
 
         $this->saveThisMove([
             "type" => 'product_4',
-            "data" => $product->only('id')
+            "data" => [
+                "new_data" => $product->only('id'),
+                "old_data" => [],
+            ]
         ]);
 
 
