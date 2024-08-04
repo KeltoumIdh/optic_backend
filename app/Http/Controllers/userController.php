@@ -49,7 +49,10 @@ class UserController extends Controller
 
         $this->saveThisMove([
             "type" => 'user_1',
-            "data" => $user->only('id','name','role','email')
+            "data" => [
+                "new_data" => $user->only('id','name','role','email'),
+                "old_data" => [],
+            ]
         ]);
     
         return response()->json([
@@ -70,6 +73,7 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $userCurrentData = clone $user;
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -82,7 +86,10 @@ class UserController extends Controller
 
         $this->saveThisMove([
             "type" => 'user_2',
-            "data" => $user->only('id','name','role','email')
+            "data" => [
+                "new_data" => $user->only('id','name','role','email'),
+                "old_data" => $userCurrentData->only('id','name','role','email'),
+            ]
         ]);
 
         return response()->json($user, 200);
@@ -95,7 +102,10 @@ class UserController extends Controller
 
         $this->saveThisMove([
             "type" => 'user_3',
-            "data" => $user->only('id')
+            "data" => [
+                "new_data" => $user->only('id'),
+                "old_data" => [],
+            ]
         ]);
 
         return response()->json(null, 204);
@@ -116,7 +126,10 @@ class UserController extends Controller
 
         $this->saveThisMove([
             "type" => 'user_4',
-            "data" => $user->only('id')
+            "data" => [
+                "new_data" => $user->only('id'),
+                "old_data" => [],
+            ]
         ]);
 
         return response()->json(['message' => 'Password updated successfully']);

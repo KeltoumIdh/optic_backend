@@ -131,10 +131,30 @@ abstract class Controller
 
         $logType = isset($arr["type"]) ? $logsTypes[$arr["type"]] : 'unknown';
 
+
+        $detailsData = $arr["data"] ?? [];
+
+        $updatedData = [
+            'new_data' => ['id' => $detailsData['new_data']['id']],
+            'old_data' => $detailsData['old_data'] ? ['id' => $detailsData['old_data']['id']] : [],
+        ];
+        
+        if (empty($detailsData['old_data'])) {
+            // If old_data is empty, return new_data as it is
+            $updatedData['new_data'] = $detailsData['new_data'];
+        } else {
+            foreach ($detailsData['new_data'] as $key => $newValue) {
+                if ($key !== 'id' && $newValue !== $detailsData['old_data'][$key]) {
+                    $updatedData['new_data'][$key] = $newValue;
+                    $updatedData['old_data'][$key] = $detailsData['old_data'][$key];
+                }
+            }
+        }
+
         $data = [
             "user" => Auth::user()->id,
             "type" => $logType,
-            "details" => $arr["data"],
+            "details" => $updatedData,
         ];
 
         // save data
