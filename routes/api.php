@@ -50,6 +50,7 @@ Route::controller(OrderController::class)->middleware(['auth:sanctum'])->group(f
     Route::get('/orders/details/{id}', 'show');
     Route::post('/download-invoice/{orderId}', 'generateInvoice')->name('download.invoice');
     Route::get('/view-invoice/{orderId}', 'viewInvoice')->name('view.invoice');
+    Route::put('/confirmOrder', 'confirmOrder');
 });
 // Route::apiResource('download-invoice', 'OrderController');
 //carts

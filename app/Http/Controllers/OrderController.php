@@ -482,4 +482,28 @@ class OrderController extends Controller
 
         return view('admin.orders.create', compact('clients'));
     }
+
+    /**
+     * Confirm order
+     */
+    public function confirmOrder(Request $request)
+    {
+        $orderId = $request->input('order_id');
+
+
+        if (!empty($orderId))
+        {
+            // Get order data
+            $order = Order::find($orderId);
+            $order->payment_status = 'completed';
+            $order->order_status = 'completed';
+            $order->paid_price = $order->total_price;
+            $order->remain_price = '0.00';
+            $order->date_fin_credit = null;
+            $order->update();
+        }
+
+
+        return response()->json(['status' => 'success']);
+    }
 }
