@@ -146,7 +146,7 @@ class ProductController extends Controller
         $product->price = $request->input('price');
         $product->quantity_available = $request->input('quantity_available');
         $product->quantity_sold = $request->input('quantity_sold');
-        
+
         if (!empty($avatarPath)) {
             $product->image = $avatarPath;
         }
@@ -171,8 +171,8 @@ class ProductController extends Controller
         $this->saveThisMove([
             "type" => 'product_2',
             "data" => [
-                "new_data" => $product->only('id', 'name', 'reference', 'price'),
-                "old_data" => $productCurrentData->only('id', 'name', 'reference', 'price'),
+                "new_data" => $product->only('id', 'name', 'reference', 'price','quantity_available','image'),
+                "old_data" => $productCurrentData->only('id', 'name', 'reference', 'price','quantity_available','image'),
             ]
         ]);
 

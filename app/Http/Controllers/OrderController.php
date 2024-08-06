@@ -289,13 +289,16 @@ class OrderController extends Controller
         // Delivered: The order has been successfully delivered to the customer.
         // Cancelled: The order has been cancelled.
 
-
         if ($order->save()) {
+            $order->load('client');
 
             $this->saveThisMove([
                 "type" => 'order_1',
                 "data" => [
-                    "new_data" => $order->only('id', 'client_id', 'cart'),
+                    "new_data" => array_merge(
+                        $order->only('id', 'client_id', 'cart'),
+                        ['client' => $order->client->only('id', 'name')] // Include client data
+                    ),
                     "old_data" => [],
                 ]
             ]);
@@ -365,7 +368,7 @@ class OrderController extends Controller
         // Find Product by id
         $order = Order::findOrFail($id);
         $orderCurrentData = clone $order;
-
+        $orderCurrentData->load('client');
 
         $filePath = null;
         if ($request->has('payement_file')) {
@@ -408,8 +411,8 @@ class OrderController extends Controller
         $this->saveThisMove([
             "type" => 'order_2',
             "data" => [
-                "new_data" => $order->only('id'),
-                "old_data" => $orderCurrentData->only('id'),
+                "new_data" => $order->only('id','paid_price','date_fin_credit','payement_file','order_status','reference_credit','payment_method'),
+                "old_data" => $orderCurrentData->only('id','paid_price','date_fin_credit','payement_file','order_status','reference_credit','payment_method'),
             ]
         ]);
 

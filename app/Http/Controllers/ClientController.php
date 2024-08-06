@@ -118,7 +118,7 @@ class ClientController extends Controller
 
         $client = new Client();
 
-        
+
         $avatarPath = null;
         if ($request->has('image')) {
             $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
@@ -138,7 +138,7 @@ class ClientController extends Controller
         $this->saveThisMove([
             "type" => 'client_1',
             "data" => [
-                "new_data" => $client->only('id','name','lname','phone'),
+                "new_data" => $client->only('id','name','lname','phone','address','city'),
                 "old_data" => [],
             ]
         ]);
@@ -192,15 +192,15 @@ class ClientController extends Controller
         if (!empty($avatarPath)) {
             $client->image = $avatarPath;
         }
-        
+
         $client->update();
 
 
         $this->saveThisMove([
             "type" => 'client_2',
             "data" => [
-                "new_data" => $client->only('id','name','lname','phone'),
-                "old_data" => $clientCurrentData->only('id','name','lname','phone'),
+                "new_data" => $client->only('id','name','lname','phone','city','address','image'),
+                "old_data" => $clientCurrentData->only('id','name','lname','phone','city','address','image'),
             ]
         ]);
 

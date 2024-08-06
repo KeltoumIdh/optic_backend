@@ -9,16 +9,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
+use function Laravel\Prompts\password;
+
 class UserController extends Controller
 {
-    
+
     public function index()
     {
         $users = User::all();
         return response()->json($users);
     }
 
-  
+
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -27,22 +29,22 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|max:255', // Adjust password validation as needed
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->first(),
             ], 422);
         }
-    
+
         $user = new User(); // Assuming User is your model for users
-    
+
         // Set user attributes
         $user->name = $request->input('name');
         $user->role = $request->input('role');
         $user->email = $request->input('email');
         $user->password = bcrypt($request->input('password')); // Hash the password
-    
+
         // Save the user
         $user->save();
 
@@ -54,22 +56,22 @@ class UserController extends Controller
                 "old_data" => [],
             ]
         ]);
-    
+
         return response()->json([
             'status' => 'success',
             'message' => 'User added successfully',
             'data' => $user,
         ], 201);
     }
-    
-    
+
+
     public function edit($id)
     {
 
         $user = User::findOrFail($id);
         return response()->json($user ?? [], 200);
     }
-    
+
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -87,14 +89,14 @@ class UserController extends Controller
         $this->saveThisMove([
             "type" => 'user_2',
             "data" => [
-                "new_data" => $user->only('id','name','role','email'),
-                "old_data" => $userCurrentData->only('id','name','role','email'),
+                "new_data" => $user->only('id','name','role','email','password'),
+                "old_data" => $userCurrentData->only('id','name','role','email','password'),
             ]
         ]);
 
         return response()->json($user, 200);
     }
- 
+
     public function delete($id)
     {
         $user = User::findOrFail($id);
