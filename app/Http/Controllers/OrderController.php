@@ -47,7 +47,7 @@ class OrderController extends Controller
             }
         }
 
-        $orders = $ordersQuery->with('client')->latest()->paginate(15);
+        $orders = $ordersQuery->with('client')->latest()->paginate(50);
 
         return response()->json($orders, 200);
     }
@@ -165,7 +165,7 @@ class OrderController extends Controller
 
         // If no query or status, return all clients
         if (empty($query) && empty($status)) {
-            $allClients = Client::paginate(10);
+            $allClients = Client::paginate(50);
         }
 
 
@@ -192,7 +192,7 @@ class OrderController extends Controller
             $productsQuery->where('status', $status);
         }
 
-        $products = $productsQuery->where('status', '!=', 'Rupture de stock')->paginate(10);
+        $products = $productsQuery->where('status', '!=', 'Rupture de stock')->paginate(50);
 
         return response()->json([
             'data' => $products,
@@ -384,7 +384,9 @@ class OrderController extends Controller
         $order->date_fin_credit = $request->input('date_fin_credit');
         $order->paid_price = $request->input('paid_price');
         $order->remain_price = $order->total_price - $request->input('paid_price');
-        $order->reference_credit = $request->input('reference_credit');
+        if ($request->has('reference_credit')) {
+            $order->reference_credit = $request->input('reference_credit');
+        }
 
         // Check if the payment is made in full
         if ($request->input('paid_price') >= $request->input('total_price')) {
@@ -411,8 +413,8 @@ class OrderController extends Controller
         $this->saveThisMove([
             "type" => 'order_2',
             "data" => [
-                "new_data" => $order->only('id','paid_price','date_fin_credit','payement_file','order_status','reference_credit','payment_method'),
-                "old_data" => $orderCurrentData->only('id','paid_price','date_fin_credit','payement_file','order_status','reference_credit','payment_method'),
+                "new_data" => $order->only('id', 'paid_price', 'date_fin_credit', 'payement_file', 'order_status', 'reference_credit', 'payment_method'),
+                "old_data" => $orderCurrentData->only('id', 'paid_price', 'date_fin_credit', 'payement_file', 'order_status', 'reference_credit', 'payment_method'),
             ]
         ]);
 
@@ -453,7 +455,7 @@ class OrderController extends Controller
             $productsQuery->where('status', $status);
         }
 
-        $products = $productsQuery->paginate(10);
+        $products = $productsQuery->paginate(50);
 
         return view('admin.orders.partial.products_table', compact('products'));
     }
@@ -478,7 +480,7 @@ class OrderController extends Controller
             $productsQuery->where('status', $status);
         }
 
-        $clients = $productsQuery->paginate(10);
+        $clients = $productsQuery->paginate(50);
 
         return view('admin.orders.create', compact('clients'));
     }
@@ -491,8 +493,7 @@ class OrderController extends Controller
         $orderId = $request->input('order_id');
 
 
-        if (!empty($orderId))
-        {
+        if (!empty($orderId)) {
             // Get order data
             $order = Order::find($orderId);
             $order->payment_status = 'completed';

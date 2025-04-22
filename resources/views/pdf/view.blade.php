@@ -1,223 +1,346 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8">
-    <title>Example 1</title>
-    <link rel="stylesheet" href="style.css" media="all" />
+    <title> TY FAWT VISION</title>
     <style>
         .clearfix:after {
-        content: "";
-        display: table;
-        clear: both;
-        }
-
-        a {
-        color: #5D6975;
-        text-decoration: underline;
+            content: "";
+            display: table;
+            clear: both;
         }
 
         body {
-        position: relative;
-        width: fit-content;
-        height: 29.7cm;
-        margin: 0 auto;
-        color: #001028;
-        background: #FFFFFF;
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-        font-family: Arial;
+            position: relative;
+            width: 21cm;
+            height: 29.7cm;
+            margin: 0 auto;
+            color: #001028;
+            background: #FFFFFF;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            padding: 0;
+        }
+
+        .page-container {
+            padding: 2cm 1.5cm;
         }
 
         header {
-        padding: 10px 0;
-        margin-bottom: 30px;
+            padding: 10px 0;
+            margin-bottom: 30px;
         }
 
-        #logo {
-        text-align: center;
-        margin-bottom: 10px;
-        padding: 0;
-        font-size:35px;
-        font-weight:bold;
-        color:red;
+        /* Logo and title section */
+        .header-top {
+            margin-bottom: 20px;
         }
 
-        #logo img {
-        width: 90px;
+        .logo-container {
+            float: left;
+            width: 60%;
         }
 
-        h1 {
-        border-top: 1px solid  #5D6975;
-        border-bottom: 1px solid  #5D6975;
-        color: #5D6975;
-        font-size: 2.4em;
-        line-height: 1.4em;
-        font-weight: normal;
-        text-align: center;
-        margin: 0 0 20px 0;
-        background: url(dimension.png);
+        .company-logo {
+            font-size: 40px;
+            font-weight: bold;
+            color: #FF0000;
+            text-transform: uppercase;
         }
 
-        #project {
-        float: left;
+        .company-slogan {
+            color: #000;
+            font-size: 28px;
+            font-weight: 500;
+            display: inline;
         }
 
-        #project span {
-        color: #5D6975;
-        text-align: right;
-        width: 52px;
-        margin-right: 10px;
-        display: inline-block;
-        font-size: 0.8em;
+        .invoice-label {
+            float: right;
+            background-color: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px 20px;
+            text-align: right;
+            width: 30%;
         }
 
-        #company {
-        float: right;
-        text-align: right;
+        .invoice-label h2 {
+            margin: 0;
+            color: #FF0000;
+            font-size: 24px;
+            text-transform: uppercase;
         }
 
-        #project div,
-        #company div {
-        white-space: nowrap;
+        .invoice-label p {
+            margin: 5px 0 0 0;
+            color: #5D6975;
+            font-size: 13px;
         }
 
+        /* Client and company info section */
+        .header-info {
+            clear: both;
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 0;
+        }
+
+        .client-info {
+            float: left;
+            width: 48%;
+        }
+
+        .company-info {
+            float: right;
+            width: 48%;
+            text-align: right;
+        }
+
+        .info-title {
+            color: #FF0000;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .info-label {
+            color: #5D6975;
+            font-weight: 600;
+            width: 100px;
+            display: inline-block;
+            font-size: 12px;
+        }
+
+        /* Table styles */
         table {
-        width: 100%;
-        border-collapse: collapse;
-        border-spacing: 0;
-        margin-bottom: 20px;
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin-bottom: 20px;
         }
 
-        table tr:nth-child(2n-1) td {
-        background: #F5F5F5;
+        table thead th {
+            padding: 10px 8px;
+            color: #5D6975;
+            background-color: #f8f8f8;
+            border-bottom: 2px solid #DDDDDD;
+            border-top: 1px solid #DDDDDD;
+            white-space: nowrap;
+            font-weight: bold;
+            text-align: center;
+            font-size: 13px;
         }
 
-        table th,
+        table tbody tr:nth-child(odd) td {
+            background: #f8f8f8;
+        }
+
         table td {
-        text-align: center;
+            padding: 15px 10px;
+            text-align: center;
+            border-bottom: 1px solid #EEEEEE;
         }
 
-        table th {
-        padding: 5px 20px;
-        color: #5D6975;
-        border-bottom: 1px solid #C1CED9;
-        white-space: nowrap;
-        font-weight: normal;
+        table td.qty {
+            width: 80px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
         }
 
-        table .service,
-        table .desc {
-        text-align: left;
+        table td.ref {
+            text-align: left;
+            font-size: 13px;
         }
 
-        table th.aa,
-        table td {
-        padding: 20px;
-        text-align: right;
+        table td.price {
+            width: 100px;
+            text-align: right;
+            font-size: 13px;
         }
 
-        table td.service,
-        table td.desc {
-        vertical-align: top;
+        table td.amount {
+            width: 120px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 13px;
         }
 
-        table td.unit,
-        table td.qty,
-        table td.total {
-        font-size: 1.2em;
+        table tr.total-row {
+            background-color: #f8f8f8;
         }
 
-        table td.grand {
-        border-top: 1px solid #5D6975;;
+        table tr.total-row td {
+            padding: 12px 10px;
+            border-top: 2px solid #DDDDDD;
+            font-weight: bold;
+            color: #5D6975;
         }
 
-        #notices .notice {
-        color: #5D6975;
-        font-size: 1.2em;
+        table tr.grand-total td {
+            font-size: 15px;
+            border-top: 2px solid #FF0000;
+            border-bottom: 2px solid #FF0000;
+            font-weight: bold;
+            color: #FF0000;
+            background-color: #f8f8f8;
+        }
+
+        .total-label {
+            text-align: right;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .paid {
+            color: #28a745;
+        }
+
+        .remaining {
+            color: #dc3545;
         }
 
         footer {
-        color: #5D6975;
-        width: 100%;
-        height: 30px;
-        position: absolute;
-        bottom: 0;
-        border-top: 1px solid #C1CED9;
-        padding: 8px 0;
-        text-align: center;
-}
+            color: #5D6975;
+            width: 100%;
+            height: 30px;
+            position: absolute;
+            bottom: 40px;
+            border-top: 1px solid #C1CED9;
+            padding: 8px 0;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .payment-info {
+            margin-top: 40px;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .payment-title {
+            font-weight: bold;
+            color: #5D6975;
+            margin-bottom: 10px;
+        }
+
+        .terms {
+            font-size: 11px;
+            color: #777;
+            border-top: 1px dashed #e0e0e0;
+            padding-top: 10px;
+            text-align: center;
+        }
+
+        main {
+            clear: both;
+        }
     </style>
   </head>
   <body>
-    <header class="clearfix">
-      <div id="logo">
-        {{-- <img src="/public/assets/logo/logo.png"> --}}
-        TY FWT </br><span style="color: black ; font-size: 30px; padding:0">vision</span>
-      </div>
-      <h1>Bon de livraison</h1>
-      <div id="company" class="clearfix">
-        <div>TY FWT VISION</div>
-        <div>Derb Sultan,<br /> Casablanca, Maroc</div>
-        <div>(212) 6-000 000 00</div>
-        <!-- <div><a href="mailto:company@example.com">company@example.com</a></div> -->
-      </div>
-      <div id="project">
-        <!-- <div><span>PROJECT</span> Website development</div> -->
-        <div><span>CLIENT</span> {{ $order->client->name }}{{ $order->client->lname }}</div>
-        <div><span>ADDRESS</span> {{ $order->client->city }},{{ $order->client->address }}</div>
-        <div><span>TELEPHONE</span>{{ $order->client->phone }}</div>
-        <div><span>DATE</span>{{ $order['created_at']}}</div>
-        <!-- <div><span>DUE DATE</span> September 17, 2015</div> -->
-      </div>
-    </header>
-    <main>
-      <table>
-        <thead>
-          <tr>
-            <th class="service">QTY</th>
-            <th class="desc">REFERENCE</th>
-            <th class="aa">PRIX</th>
-            <th  class="aa">MONTANT</th>
-          </tr>
-        </thead>
-        <tbody>
-            @foreach (json_decode($order->cart)->productsCart as $p)
-    @php
-        $product = $products->firstWhere('id', $p->product_id);
-    @endphp
-    @if ($product)
-        <tr>
-            <td class="service">x{{ $p->quantity ?? 0 }}</td>
-            {{-- <td class="service">{{ $loop->iteration ?? 0 }}</td> --}}
-            <td class="desc">{{ $product->reference ?? 0 }}</td>
-            <td class="unit">{{ $p->price ?? 0 }}</td>
-            <td class="total">${{ $p->price ?? 0 * $p->quantity ?? 0 }}</td>
-        </tr>
-    @endif
-@endforeach
+    <div class="page-container">
+        <header class="clearfix">
+            <div class="header-top clearfix">
+                <div class="logo-container">
+                    <div class="company-logo">TY FAWT <span class="company-slogan">vision</span></div>
+                </div>
+                <div class="invoice-label">
+                    <h2>Facture</h2>
+                    <p>N° {{ $order->id ?? '#' }}</p>
+                    <p>Date: {{ date('d/m/Y', strtotime($order['created_at'])) }}</p>
+                </div>
+            </div>
 
-<tr>
-            <td colspan="3" class="grand total">GRAND TOTAL</td>
-            <td class="grand total">${{ $order['total_price'] ?? '#' }}</td>
-          </tr>
-          <tr>
-            <td colspan="3">PRIX PAYÉ</td>
-            <td class="total">${{ $order['paid_price'] ?? '#' }}</td>
-          </tr>
-          <tr>
-            <td colspan="3">PRIX RESTANT</td>
-            <td class="total">${{ $order['remain_price'] ?? '#' }}</td>
-          </tr>
+            <div class="header-info clearfix">
+                <div class="client-info">
+                    <div class="info-title">Information Client</div>
+                    <div><span class="info-label">Nom:</span> {{ $order->client->name }} {{ $order->client->lname }}</div>
+                    <div><span class="info-label">Adresse:</span> {{ $order->client->city }}, {{ $order->client->address }}</div>
+                    <div><span class="info-label">Téléphone:</span> {{ $order->client->phone }}</div>
+                    <div><span class="info-label">Date:</span> {{ date('d/m/Y H:i', strtotime($order['created_at'])) }}</div>
+                </div>
+                <div class="company-info">
+                    <div class="info-title">Notre Société</div>
+                    <div>TY FAWT VISION</div>
+                    <div>Derb Sultan,</div>
+                    <div>Casablanca, Maroc</div>
+                    <div>(212) 6-753 494 47</div>
+                </div>
+            </div>
+        </header>
 
-        </tbody>
-      </table>
-      <!-- <div id="notices">
-        <div>NOTICE:</div>
-        <div class="notice">A finance charge of 1.5% will be made on unpaid balances after 30 days.</div>
-      </div> -->
-    </main>
-    <!-- <footer>
-      Invoice was created on a computer and is valid without the signature and seal.
-    </footer> -->
+        <main>
+            <table>
+                <thead>
+                    <tr>
+                        <th>QTÉ</th>
+                        <th>RÉFÉRENCE</th>
+                        <th>PRIX</th>
+                        <th>MONTANT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (json_decode($order->cart)->productsCart as $p)
+                        @php
+                            $product = $products->firstWhere('id', $p->product_id);
+                            $totalPrice = ($p->price ?? 0) * ($p->quantity ?? 0);
+                        @endphp
+                        @if ($product)
+                            <tr>
+                                <td class="qty">x{{ $p->quantity ?? 0 }}</td>
+                                <td class="ref">{{ $product->reference ?? 0 }}</td>
+                                <td class="price">{{ number_format($p->price ?? 0, 2) }} dh</td>
+                                <td class="amount">{{ number_format($totalPrice, 2) }} dh</td>
+                            </tr>
+                        @endif
+                    @endforeach
+
+                    <tr class="total-row">
+                        <td colspan="3" class="total-label">SOUS-TOTAL</td>
+                        <td class="amount">{{ number_format($order['total_price'] ?? 0, 2) }} dh</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="total-label">PRIX PAYÉ</td>
+                        <td class="amount paid">{{ number_format($order['paid_price'] ?? 0, 2) }} dh</td>
+                    </tr>
+                    <tr class="grand-total">
+                        <td colspan="3" class="total-label">RESTE À PAYER</td>
+                        <td class="amount remaining">{{ number_format($order['remain_price'] ?? 0, 2) }} dh</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="payment-info">
+                <div class="payment-title">DÉTAILS DU PAIEMENT</div>
+                <div>Méthode de paiement: <strong>{{ ucfirst($order['payment_method'] ?? 'Non spécifié') }}</strong></div>
+                @if ($order['is_credit'] == 1)
+                    <div>Statut: <strong>Crédit</strong></div>
+                    @if ($order['date_fin_credit'])
+                        <div>Date de fin de crédit: <strong>{{ date('d/m/Y', strtotime($order['date_fin_credit'])) }}</strong></div>
+                    @endif
+                @else
+                    <div>Statut: <strong>Payé</strong></div>
+                @endif
+                @if ($order['reference_credit'])
+                    <div>Référence: <strong>{{ $order['reference_credit'] }}</strong></div>
+                @endif
+            </div>
+
+            <div class="terms">
+                <p>Cette facture a été générée automatiquement et ne nécessite pas de signature.</p>
+                <p>Merci d'avoir choisi TY FAWT VISION. Nous apprécions votre confiance.</p>
+            </div>
+        </main>
+
+        <footer>
+            TY FAWT VISION - SIREN: 123456789 - RC: Casablanca 12345 - Derb Sultan, Casablanca, Maroc - Tél: (212) 6-000 000 00
+        </footer>
+    </div>
   </body>
 </html>

@@ -7,6 +7,7 @@ use App\Models\Order;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class ClientController extends Controller
 {
@@ -67,8 +68,8 @@ class ClientController extends Controller
         }
 
         $clients = $clientsQuery->withCount('orders') // Count the number of orders
-                                ->orderBy('created_at', 'desc')
-                                ->paginate(50);
+            ->orderBy('created_at', 'desc')
+            ->paginate(50);
 
         foreach ($clients as $client) {
             // Fetch the number of orders made by the client
@@ -76,8 +77,8 @@ class ClientController extends Controller
 
             // Check if the client has any remaining credit
             $client->has_credit = Order::where('client_id', $client->id)
-                                        ->where('is_credit', 1)
-                                        ->exists();
+                ->where('is_credit', 1)
+                ->exists();
         }
 
         if ($request->wantsJson()) {
@@ -86,7 +87,7 @@ class ClientController extends Controller
 
         // If no query or status, return all clients
         if (empty($query) && empty($status)) {
-            $allClients = Client::paginate(10);
+            $allClients = Client::paginate(50);
         }
 
         return response()->json($clients ?? [], 200);
@@ -120,8 +121,11 @@ class ClientController extends Controller
 
 
         $avatarPath = null;
-        if ($request->has('image')) {
-            $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
+        if ($request->has('image') && !empty($request->input('image'))) {
+            $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/clients/');
+        } else {
+            // Set default image path when no image is provided
+            $avatarPath = 'default.jpg';
         }
 
 
@@ -138,7 +142,7 @@ class ClientController extends Controller
         $this->saveThisMove([
             "type" => 'client_1',
             "data" => [
-                "new_data" => $client->only('id','name','lname','phone','address','city'),
+                "new_data" => $client->only('id', 'name', 'lname', 'phone', 'address', 'city'),
                 "old_data" => [],
             ]
         ]);
@@ -179,8 +183,8 @@ class ClientController extends Controller
 
 
         $avatarPath = null;
-        if ($request->has('image')) {
-            $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
+        if ($request->has('image') && !empty($request->input('image'))) {
+            $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/clients/');
         }
 
         $client->name = $request->input('name');
@@ -191,6 +195,9 @@ class ClientController extends Controller
 
         if (!empty($avatarPath)) {
             $client->image = $avatarPath;
+        } else if (!$client->image) {
+            // If no image was provided and client doesn't have an image, set default
+            $client->image = 'default.jpg';
         }
 
         $client->update();
@@ -199,8 +206,8 @@ class ClientController extends Controller
         $this->saveThisMove([
             "type" => 'client_2',
             "data" => [
-                "new_data" => $client->only('id','name','lname','phone','city','address','image'),
-                "old_data" => $clientCurrentData->only('id','name','lname','phone','city','address','image'),
+                "new_data" => $client->only('id', 'name', 'lname', 'phone', 'city', 'address', 'image'),
+                "old_data" => $clientCurrentData->only('id', 'name', 'lname', 'phone', 'city', 'address', 'image'),
             ]
         ]);
 
@@ -222,16 +229,25 @@ class ClientController extends Controller
             ], 404);
         }
 
-        if ($client->image !== 'default.jpg') {
-            $path = public_path('/assets/uploads/clients/' . $client->image);
-
-            if (file_exists($path)) {
-                unlink($path);
+        if ($client->image && $client->image !== 'default.jpg') {
+            // If it's a storage path
+            if (strpos($client->image, '/storage/') === 0) {
+                // Convert /storage/ path to the actual storage path
+                $path = str_replace('/storage/', '', $client->image);
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+            // If it's a legacy path
+            else if (
+                strpos($client->image, '/assets/') === 0 ||
+                file_exists(public_path($client->image))
+            ) {
+                @unlink(public_path($client->image));
             }
         }
 
         $client->delete();
-
 
         $this->saveThisMove([
             "type" => 'client_3',
@@ -261,7 +277,7 @@ class ClientController extends Controller
         $client = Client::find($id);
 
         // Retrieve all orders that contain the client
-        $clientOrders = Order::where('client_id' , $id)->get();
+        $clientOrders = Order::where('client_id', $id)->get();
 
 
         // You can customize the response format as needed
@@ -291,7 +307,7 @@ class ClientController extends Controller
             $productsQuery->where('status', $status);
         }
 
-        $clients = $productsQuery->paginate(10);
+        $clients = $productsQuery->paginate(50);
 
         return view('admin.clients.index', compact('clients'));
     }

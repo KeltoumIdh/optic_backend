@@ -15,12 +15,12 @@ class DashboardController extends Controller
     public function totalProducts()
     {
         try {
-            
+
             $total = Product::count();
 
             return response()->json(['total' => $total]);
         } catch (\Exception $e) {
-      
+
             return response()->json(['error' => 'Erreur lors de la récupération du total des produits.'], 500);
         }
     }
@@ -28,12 +28,12 @@ class DashboardController extends Controller
     public function totalClients()
     {
         try {
-            
+
             $total = Client::count();
 
             return response()->json(['total' => $total]);
         } catch (\Exception $e) {
-      
+
             return response()->json(['error' => 'Erreur lors de la récupération du total des clients.'], 500);
         }
     }
@@ -41,12 +41,12 @@ class DashboardController extends Controller
     public function totalUsers()
     {
         try {
-            
+
             $total = User::count();
 
             return response()->json(['total' => $total]);
         } catch (\Exception $e) {
-      
+
             return response()->json(['error' => 'Erreur lors de la récupération du total des Users.'], 500);
         }
     }
@@ -54,18 +54,18 @@ class DashboardController extends Controller
     public function totalOrders()
     {
         try {
-            
+
             $total = Order::count();
 
             return response()->json(['total' => $total]);
         } catch (\Exception $e) {
-      
+
             return response()->json(['error' => 'Erreur lors de la récupération du total des Orders.'], 500);
         }
     }
 
 
-  
+
 
     public function getTopSellingProducts()
     {
@@ -75,11 +75,11 @@ class DashboardController extends Controller
 
         return $topSellingProducts;
     }
-    
+
     public function getAvailableProducts()
     {
         $availableProducts = Product::whereIn('status', ['Stock faible', 'Rupture de stock'])->get();
-        
+
         return $availableProducts;
     }
 
@@ -89,7 +89,7 @@ class DashboardController extends Controller
     {
         $currentDate = now()->toDateString();
         $fiveDaysLater = now()->addDays(5)->toDateString(); // Date cinq jours plus tard
-        
+
         $clients = DB::table('orders')
             ->join('clients', 'orders.client_id', '=', 'clients.id')
             ->whereNotNull('date_debut_credit')
@@ -99,39 +99,38 @@ class DashboardController extends Controller
             })
             // ->where('remain_price', '>', 0)
             ->orWhereDate('date_fin_credit', '<', $currentDate) // Date de fin de crédit est antérieure à la date actuelle
-            
+
             ->select('clients.*', 'orders.*', DB::raw('DATEDIFF(date_fin_credit, CURDATE()) AS days_remaining'))
             ->distinct()
             ->get();
-        
+
         return $clients;
     }
-   
+
 
     public function getPaymentOrders()
     {
         $orders = DB::table('orders')
                     ->join('clients', 'orders.client_id', '=', 'clients.id')
                     ->whereNotNull('orders.payment_method')
-                    ->whereIn('orders.payment_method', ['check', 'trita'])
+                    ->whereIn('orders.payment_method', ['check', 'traita'])
                     ->select('clients.*', 'orders.*')
                     ->get();
-    
+
         return $orders;
     }
 
 
-    
+
     public function getFactureOrders()
     {
         $orders = DB::table('orders')
                     ->join('clients', 'orders.client_id', '=', 'clients.id')
                     ->select('clients.*', 'orders.*')
                     ->get();
-    
+
         return $orders;
     }
-    
-    
-}
 
+
+}

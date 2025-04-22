@@ -40,7 +40,7 @@ Route::controller(ProductController::class)->middleware(['auth:sanctum'])->group
 Route::controller(OrderController::class)->middleware(['auth:sanctum'])->group(function () {
     Route::get('/orders', 'index');
     Route::get('/orders/add', 'create');
-    Route::post('/orders/products/add/{id}', 'createOrder');
+    Route::get('/orders/products/add/{id}', 'createOrder');
     Route::post('/orders/confirmed', 'createOrder');
     Route::get('/orders/confirmed', 'getProductsByIds');
     Route::post('/add-order', 'store');

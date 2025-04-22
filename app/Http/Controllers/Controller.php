@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Product;
@@ -23,7 +24,7 @@ abstract class Controller
      * @param string $message
      * @param array $data
      * @param boolean $is_ok
-    */
+     */
     function res($message = null, $data = [], $is_ok = true)
     {
         return response()->json([
@@ -43,21 +44,23 @@ abstract class Controller
             // Decode the base64 string
             $avatarDecoded = base64_decode(preg_replace('/^data:image\/\w+;base64,/', '', $file));
 
-            // Generate a new filename
-            $avatarName =  date('Ymdhis').'_'.uniqid() . '.png';
+            // Generate a new filename with timestamp and unique ID
+            $avatarName = date('Ymdhis') . '_' . uniqid() . '.png';
+
+            // Ensure folder exists
+            $fullPath = $folder . $avatarName;
 
             // Save the file to the desired location
-            Storage::disk('public')->put($folder . $avatarName, $avatarDecoded);
+            Storage::disk('public')->put($fullPath, $avatarDecoded);
 
-            $file_path = Storage::url($folder . $avatarName);
-
-            return $file_path ?? null;
+            // Return the correct path that can be used in frontend
+            return '/storage/' . $fullPath;
         }
 
         return null;
     }
 
-    
+
     /**
      * Update products Quantity after ordering
      * @param object $productsArr
@@ -71,11 +74,10 @@ abstract class Controller
         }
 
 
-        foreach ($productsArr as $product)
-        {
+        foreach ($productsArr as $product) {
             $id = $product["product_id"];
             $qnt = $product["quantity"];
-            
+
             // get product
             $productData = Product::findOrFail($id);
 
@@ -88,14 +90,11 @@ abstract class Controller
             $productData->quantity_sold = $newSoldQuantity;
             if ($newAvailableQuantity === 0) {
                 $productData->status = "Repture de stock";
+            } else if ($newAvailableQuantity < 10) {
+                $productData->status = "Stock faible";
+            } else {
             }
 
-            else if ($newAvailableQuantity < 10) {
-                $productData->status = "Stock faible";
-            }
-            
-            else {}
-            
             $productData->update();
         }
 
@@ -124,7 +123,7 @@ abstract class Controller
             "client_1" => "new_client_created",
             "client_2" => "client_updated",
             "client_3" => "client_deleted",
-            
+
             "order_1" => "new_order",
             "order_2" => "order_updated",
         ];
@@ -138,7 +137,7 @@ abstract class Controller
             'new_data' => ['id' => $detailsData['new_data']['id']],
             'old_data' => $detailsData['old_data'] ? ['id' => $detailsData['old_data']['id']] : [],
         ];
-        
+
         if (empty($detailsData['old_data'])) {
             // If old_data is empty, return new_data as it is
             $updatedData['new_data'] = $detailsData['new_data'];

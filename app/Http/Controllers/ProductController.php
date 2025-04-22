@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -35,7 +36,7 @@ class ProductController extends Controller
 
         // If no query or status, return all products
         if (empty($query) && empty($status)) {
-            $allProducts = Product::paginate(10);
+            $allProducts = Product::paginate(50);
         }
 
         return response()->json($products ?? [], 200);
@@ -67,8 +68,11 @@ class ProductController extends Controller
 
 
         $avatarPath = null;
-        if ($request->has('image')) {
+        if ($request->has('image') && !empty($request->input('image'))) {
             $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
+        } else {
+            // Set default image path when no image is provided
+            $avatarPath = 'default.jpg';
         }
 
 
@@ -136,7 +140,7 @@ class ProductController extends Controller
 
 
         $avatarPath = null;
-        if ($request->has('image')) {
+        if ($request->has('image') && !empty($request->input('image'))) {
             $avatarPath = $this->uploadBase64Image($request->input('image'), 'uploads/products/');
         }
 
@@ -149,6 +153,9 @@ class ProductController extends Controller
 
         if (!empty($avatarPath)) {
             $product->image = $avatarPath;
+        } else if (!$product->image) {
+            // If no image was provided and product doesn't have an image, set default
+            $product->image = 'default.jpg';
         }
 
         // Update status based on quantity
@@ -171,8 +178,8 @@ class ProductController extends Controller
         $this->saveThisMove([
             "type" => 'product_2',
             "data" => [
-                "new_data" => $product->only('id', 'name', 'reference', 'price','quantity_available','image'),
-                "old_data" => $productCurrentData->only('id', 'name', 'reference', 'price','quantity_available','image'),
+                "new_data" => $product->only('id', 'name', 'reference', 'price', 'quantity_available', 'image'),
+                "old_data" => $productCurrentData->only('id', 'name', 'reference', 'price', 'quantity_available', 'image'),
             ]
         ]);
 
@@ -183,23 +190,36 @@ class ProductController extends Controller
     public function delete($id)
     {
         $product = product::find($id);
-        if ($product->image !== 'default.jpg') {
-            $path = 'assets/uploads/products/' . $product->image;
-            if (file_exists($path)) {
-                unlink($path);
+        if ($product && $product->image) {
+            // Handle deletion of image if it exists
+            if ($product->image !== 'default.jpg') {
+                // If it's a storage path
+                if (strpos($product->image, '/storage/') === 0) {
+                    // Convert /storage/ path to the actual storage path
+                    $path = str_replace('/storage/', '', $product->image);
+                    if (Storage::disk('public')->exists($path)) {
+                        Storage::disk('public')->delete($path);
+                    }
+                }
+                // If it's a legacy path
+                else if (
+                    strpos($product->image, 'assets/uploads/products/') === 0 ||
+                    file_exists(public_path($product->image))
+                ) {
+                    @unlink(public_path($product->image));
+                }
             }
         }
+
         $product->delete();
 
-
         $this->saveThisMove([
-            "type" => 'product_4',
+            "type" => 'product_3',
             "data" => [
                 "new_data" => $product->only('id'),
                 "old_data" => [],
             ]
         ]);
-
 
         return response()->json([
             'status' => 'success',
@@ -249,7 +269,7 @@ class ProductController extends Controller
             $productsQuery->where('status', $status);
         }
 
-        $products = $productsQuery->paginate(10);
+        $products = $productsQuery->paginate(50);
 
         return view('admin.products.index', compact('products'));
     }
