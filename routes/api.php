@@ -10,7 +10,25 @@ use App\Http\Controllers\ActivitiesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Catch-all fallback for financial stats (should handle any variant of the request)
+Route::any('financial-stats/{any?}', [OrderController::class, 'getFinancialStats'])
+    ->where('any', '.*');
 
+// Individual routes for specific timeframes
+Route::get('/financial-stats', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/today', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/yesterday', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/this_week', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/last_week', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/this_month', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/last_month', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/this_year', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/last_year', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/all', [OrderController::class, 'getFinancialStats']);
+Route::get('/financial-stats/all_time', [OrderController::class, 'getFinancialStats']);
+
+// Statistics route
+Route::get('/statistics/{timeframe?}', [OrderController::class, 'getStatistics']);
 
 //CLIENTS
 Route::controller(ClientController::class)->group(function () {
@@ -23,6 +41,7 @@ Route::controller(ClientController::class)->group(function () {
         Route::get('/clients/details/{id}', 'show');
     });
 });
+
 //PRODUCTS
 Route::controller(ProductController::class)->middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
@@ -36,6 +55,7 @@ Route::controller(ProductController::class)->middleware(['auth:sanctum'])->group
         Route::get('/products/{id}', 'show');
     });
 });
+
 //Orders
 Route::controller(OrderController::class)->middleware(['auth:sanctum'])->group(function () {
     Route::get('/orders', 'index');
@@ -52,7 +72,7 @@ Route::controller(OrderController::class)->middleware(['auth:sanctum'])->group(f
     Route::get('/view-invoice/{orderId}', 'viewInvoice')->name('view.invoice');
     Route::put('/confirmOrder', 'confirmOrder');
 });
-// Route::apiResource('download-invoice', 'OrderController');
+
 //carts
 Route::controller(CartController::class)->middleware(['auth:sanctum'])->group(function () {
     Route::post('/carts/add', 'create');

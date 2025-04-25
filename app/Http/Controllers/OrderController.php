@@ -9,6 +9,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 // use Dompdf\Dompdf;
 // use Barryvdh\DomPDF\PDF as DomPDFPDF;
 // use Spatie\Browsershot\Browsershot;
@@ -506,5 +507,286 @@ class OrderController extends Controller
 
 
         return response()->json(['status' => 'success']);
+    }
+    // Add this method to your StatisticsController or create a new controller
+
+    /**
+     * Get statistics data for the dashboard based on timeframe
+     *
+     * @param string $timeframe (daily, weekly, monthly)
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getStatistics($timeframe = 'daily')
+    {
+        // Validate timeframe
+        if (!in_array($timeframe, ['daily', 'weekly', 'monthly'])) {
+            return response()->json(['error' => 'Invalid timeframe'], 400);
+        }
+
+        // Set up date ranges for current and previous periods
+        $now = Carbon::now();
+        $currentStart = null;
+        $currentEnd = $now;
+        $previousStart = null;
+        $previousEnd = null;
+
+        switch ($timeframe) {
+            case 'daily':
+                $currentStart = $now->copy()->startOfDay();
+                $previousStart = $now->copy()->subDay()->startOfDay();
+                $previousEnd = $now->copy()->subDay()->endOfDay();
+                break;
+            case 'weekly':
+                $currentStart = $now->copy()->startOfWeek();
+                $previousStart = $now->copy()->subWeek()->startOfWeek();
+                $previousEnd = $now->copy()->subWeek()->endOfWeek();
+                break;
+            case 'monthly':
+                $currentStart = $now->copy()->startOfMonth();
+                $previousStart = $now->copy()->subMonth()->startOfMonth();
+                $previousEnd = $now->copy()->subMonth()->endOfMonth();
+                break;
+        }
+
+        // Calculate sales statistics
+        $currentSales = Order::whereBetween('created_at', [$currentStart, $currentEnd])->sum('total_price');
+        $previousSales = Order::whereBetween('created_at', [$previousStart, $previousEnd])->sum('total_price');
+        $salesChange = $previousSales > 0 ? round((($currentSales - $previousSales) / $previousSales) * 100, 1) : 0;
+
+        // Calculate orders statistics
+        $currentOrders = Order::whereBetween('created_at', [$currentStart, $currentEnd])->count();
+        $previousOrders = Order::whereBetween('created_at', [$previousStart, $previousEnd])->count();
+        $ordersChange = $previousOrders > 0 ? round((($currentOrders - $previousOrders) / $previousOrders) * 100, 1) : 0;
+
+        // Calculate new clients statistics
+        $currentClients = Client::whereBetween('created_at', [$currentStart, $currentEnd])->count();
+        $previousClients = Client::whereBetween('created_at', [$previousStart, $previousEnd])->count();
+        $clientsChange = $previousClients > 0 ? round((($currentClients - $previousClients) / $previousClients) * 100, 1) : 0;
+
+        // Calculate average order value
+        $currentAvgOrder = $currentOrders > 0 ? ($currentSales / $currentOrders) : 0;
+        $previousAvgOrder = $previousOrders > 0 ? ($previousSales / $previousOrders) : 0;
+        $avgOrderChange = $previousAvgOrder > 0 ? round((($currentAvgOrder - $previousAvgOrder) / $previousAvgOrder) * 100, 1) : 0;
+
+        return response()->json([
+            'sales' => [
+                'value' => $currentSales,
+                'percentChange' => $salesChange
+            ],
+            'orders' => [
+                'value' => $currentOrders,
+                'percentChange' => $ordersChange
+            ],
+            'clients' => [
+                'value' => $currentClients,
+                'percentChange' => $clientsChange
+            ],
+            'averageOrder' => [
+                'value' => $currentAvgOrder,
+                'percentChange' => $avgOrderChange
+            ]
+        ]);
+    }
+
+    /**
+     * Get financial statistics data for the dashboard
+     *
+     * @param string $timeframe (today, yesterday, this_week, last_week, this_month, last_month, this_year, last_year, all)
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getFinancialStats($timeframe = 'today')
+    {
+        // Add CORS headers to ensure the endpoint is accessible from any domain
+        $headers = [
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization, X-Requested-With'
+        ];
+
+        // Log the incoming request for debugging
+        Log::info('Financial stats requested with timeframe: ' . $timeframe);
+        Log::info('Request URL: ' . request()->fullUrl());
+        Log::info('Request method: ' . request()->method());
+
+        try {
+            // Extract timeframe from any request format (eg "financial-stats/all", "api/financial-stats/all", etc)
+            if (strpos($timeframe, '/') !== false) {
+                $parts = explode('/', $timeframe);
+                $timeframe = end($parts);
+            }
+
+            // Handle empty timeframe
+            if (empty($timeframe)) {
+                $timeframe = 'today';
+            }
+
+            // Normalize the 'all_time' parameter to 'all' for consistency
+            if ($timeframe === 'all_time') {
+                $timeframe = 'all';
+            }
+
+            // Validate timeframe
+            $validTimeframes = [
+                'today',
+                'yesterday',
+                'this_week',
+                'last_week',
+                'this_month',
+                'last_month',
+                'this_year',
+                'last_year',
+                'all'
+            ];
+
+            if (!in_array($timeframe, $validTimeframes)) {
+                Log::warning('Invalid timeframe requested: ' . $timeframe);
+
+                // For now, default to 'all' instead of returning an error
+                $timeframe = 'all';
+            }
+
+            // Set up date ranges based on timeframe
+            $query = Order::query();
+            $now = Carbon::now();
+            $previousQuery = Order::query();
+
+            if ($timeframe !== 'all') {
+                switch ($timeframe) {
+                    case 'today':
+                        $query->whereDate('created_at', $now->toDateString());
+                        $previousQuery->whereDate('created_at', $now->copy()->subDay()->toDateString());
+                        break;
+
+                    case 'yesterday':
+                        $query->whereDate('created_at', $now->copy()->subDay()->toDateString());
+                        $previousQuery->whereDate('created_at', $now->copy()->subDays(2)->toDateString());
+                        break;
+
+                    case 'this_week':
+                        $query->whereBetween('created_at', [
+                            $now->copy()->startOfWeek(),
+                            $now->copy()->endOfWeek()
+                        ]);
+                        $previousQuery->whereBetween('created_at', [
+                            $now->copy()->subWeek()->startOfWeek(),
+                            $now->copy()->subWeek()->endOfWeek()
+                        ]);
+                        break;
+
+                    case 'last_week':
+                        $query->whereBetween('created_at', [
+                            $now->copy()->subWeek()->startOfWeek(),
+                            $now->copy()->subWeek()->endOfWeek()
+                        ]);
+                        $previousQuery->whereBetween('created_at', [
+                            $now->copy()->subWeeks(2)->startOfWeek(),
+                            $now->copy()->subWeeks(2)->endOfWeek()
+                        ]);
+                        break;
+
+                    case 'this_month':
+                        $query->whereYear('created_at', $now->year)
+                            ->whereMonth('created_at', $now->month);
+                        $previousMonth = $now->copy()->subMonth();
+                        $previousQuery->whereYear('created_at', $previousMonth->year)
+                            ->whereMonth('created_at', $previousMonth->month);
+                        break;
+
+                    case 'last_month':
+                        $lastMonth = $now->copy()->subMonth();
+                        $query->whereYear('created_at', $lastMonth->year)
+                            ->whereMonth('created_at', $lastMonth->month);
+                        $twoMonthsAgo = $now->copy()->subMonths(2);
+                        $previousQuery->whereYear('created_at', $twoMonthsAgo->year)
+                            ->whereMonth('created_at', $twoMonthsAgo->month);
+                        break;
+
+                    case 'this_year':
+                        $query->whereYear('created_at', $now->year);
+                        $previousQuery->whereYear('created_at', $now->year - 1);
+                        break;
+
+                    case 'last_year':
+                        $query->whereYear('created_at', $now->year - 1);
+                        $previousQuery->whereYear('created_at', $now->year - 2);
+                        break;
+                }
+            }
+
+            // Clone the query for counters to avoid issues with aggregations
+            $countQuery = clone $query;
+
+            // Get total revenue statistics
+            $totalRevenue = $query->sum('total_price');
+            $paidAmount = $query->sum('paid_price');
+            $pendingAmount = $totalRevenue - $paidAmount;
+
+            // Get count statistics
+            $totalOrders = $countQuery->count();
+            $completedOrdersCount = $countQuery->where('payment_status', 'completed')->count();
+            $pendingOrdersCount = $countQuery->where('payment_status', 'pending')->count();
+
+            // Calculate percentage of paid vs total
+            $paymentCompletionRate = $totalRevenue > 0 ? round(($paidAmount / $totalRevenue) * 100, 1) : 0;
+
+            // For comparison, get previous period stats
+            $previousTotalRevenue = $previousQuery->sum('total_price');
+            $previousPaidAmount = $previousQuery->sum('paid_price');
+
+            // Calculate percentage changes
+            $revenueChange = $previousTotalRevenue > 0 ?
+                round((($totalRevenue - $previousTotalRevenue) / $previousTotalRevenue) * 100, 1) : 0;
+
+            $paidAmountChange = $previousPaidAmount > 0 ?
+                round((($paidAmount - $previousPaidAmount) / $previousPaidAmount) * 100, 1) : 0;
+
+            // Calculate pending change only if both current and previous have data
+            $previousPendingAmount = $previousTotalRevenue - $previousPaidAmount;
+            $pendingAmountChange = $previousPendingAmount > 0 ?
+                round((($pendingAmount - $previousPendingAmount) / $previousPendingAmount) * 100, 1) : 0;
+
+            // Ensure zero values for empty results
+            $totalRevenue = $totalRevenue ?: 0;
+            $paidAmount = $paidAmount ?: 0;
+            $pendingAmount = $pendingAmount ?: 0;
+
+            // Build the response data with the correct structure
+            $responseData = [
+                'totalRevenue' => [
+                    'value' => $totalRevenue,
+                    'percentChange' => $revenueChange
+                ],
+                'paidAmount' => [
+                    'value' => $paidAmount,
+                    'percentChange' => $paidAmountChange
+                ],
+                'pendingAmount' => [
+                    'value' => $pendingAmount,
+                    'percentChange' => $pendingAmountChange
+                ],
+                'paymentCompletionRate' => $paymentCompletionRate,
+                'orderCounts' => [
+                    'total' => $totalOrders,
+                    'completed' => $completedOrdersCount,
+                    'pending' => $pendingOrdersCount
+                ],
+                'timeframe' => $timeframe
+            ];
+
+            // Log the response for debugging
+            Log::info('Financial stats response generated successfully');
+
+            // Return the response with CORS headers
+            return response()->json($responseData, 200, $headers);
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Error in financial stats: ' . $e->getMessage());
+
+            // Return an error response
+            return response()->json([
+                'error' => 'An error occurred while fetching financial statistics',
+                'message' => $e->getMessage()
+            ], 500, $headers);
+        }
     }
 }
