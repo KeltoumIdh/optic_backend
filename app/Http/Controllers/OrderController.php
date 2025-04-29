@@ -327,15 +327,53 @@ class OrderController extends Controller
         }
 
         $products = [];
+        $deletedProducts = [];
+
         if ($order->cart) {
-            $cartData = json_decode($order->cart);
-            if ($cartData && isset($cartData->productsCart)) {
-                $productIds = collect($cartData->productsCart)->pluck('product_id')->toArray();
-                $products = Product::whereIn('id', $productIds)->get();
+            $cartData = json_decode($order->cart, true);
+            if ($cartData && isset($cartData['productsCart'])) {
+                // Extract IDs of non-deleted products
+                $productIds = [];
+
+                foreach ($cartData['productsCart'] as $item) {
+                    // If the product is marked as deleted, add it to deleted products array
+                    if (isset($item['is_deleted']) && $item['is_deleted'] === true) {
+                        if (isset($item['product_data'])) {
+                            $deletedProducts[] = array_merge($item['product_data'], [
+                                'quantity' => $item['quantity'] ?? 1,
+                                'is_deleted' => true
+                            ]);
+                        }
+                    } else {
+                        // Otherwise add to product IDs to fetch from database
+                        $productIds[] = $item['product_id'];
+                    }
+                }
+
+                // Fetch non-deleted products from the database
+                if (!empty($productIds)) {
+                    $dbProducts = Product::whereIn('id', $productIds)->get();
+
+                    // Add quantity information to each product
+                    foreach ($dbProducts as $product) {
+                        foreach ($cartData['productsCart'] as $item) {
+                            if ($item['product_id'] == $product->id) {
+                                $product->quantity = $item['quantity'] ?? 1;
+                                break;
+                            }
+                        }
+                    }
+
+                    $products = $dbProducts;
+                }
             }
         }
 
-        return response()->json(['order' => $order, 'products' => $products], 200);
+        return response()->json([
+            'order' => $order,
+            'products' => $products,
+            'deleted_products' => $deletedProducts
+        ], 200);
     }
 
     /**

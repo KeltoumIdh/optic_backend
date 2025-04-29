@@ -197,20 +197,28 @@ class ProductController extends Controller
             ], 404);
         }
 
+        // Get product data before deletion to preserve in orders
+        $productData = $product->only('id', 'name', 'reference', 'price', 'image');
+
         // Find orders that reference this product in their cart JSON
         $orders = Order::all();
         foreach ($orders as $order) {
             if ($order->cart) {
                 $cartData = json_decode($order->cart, true);
                 if ($cartData && isset($cartData['productsCart'])) {
-                    // Remove the product from the productsCart array or mark it as deleted
                     $productsCart = $cartData['productsCart'];
-                    $updatedProductsCart = array_filter($productsCart, function ($item) use ($id) {
-                        return $item['product_id'] != $id;
-                    });
+
+                    // Instead of removing the product, mark it as deleted
+                    foreach ($productsCart as $key => $item) {
+                        if ($item['product_id'] == $id) {
+                            // Add a flag to indicate the product is deleted and preserve its data
+                            $productsCart[$key]['is_deleted'] = true;
+                            $productsCart[$key]['product_data'] = $productData;
+                        }
+                    }
 
                     // Update the cart JSON
-                    $cartData['productsCart'] = array_values($updatedProductsCart);
+                    $cartData['productsCart'] = $productsCart;
                     $order->cart = json_encode($cartData);
                     $order->save();
                 }
