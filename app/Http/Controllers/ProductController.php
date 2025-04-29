@@ -189,8 +189,35 @@ class ProductController extends Controller
 
     public function delete($id)
     {
-        $product = product::find($id);
-        if ($product && $product->image) {
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Product not found',
+            ], 404);
+        }
+
+        // Find orders that reference this product in their cart JSON
+        $orders = Order::all();
+        foreach ($orders as $order) {
+            if ($order->cart) {
+                $cartData = json_decode($order->cart, true);
+                if ($cartData && isset($cartData['productsCart'])) {
+                    // Remove the product from the productsCart array or mark it as deleted
+                    $productsCart = $cartData['productsCart'];
+                    $updatedProductsCart = array_filter($productsCart, function ($item) use ($id) {
+                        return $item['product_id'] != $id;
+                    });
+
+                    // Update the cart JSON
+                    $cartData['productsCart'] = array_values($updatedProductsCart);
+                    $order->cart = json_encode($cartData);
+                    $order->save();
+                }
+            }
+        }
+
+        if ($product->image) {
             // Handle deletion of image if it exists
             if ($product->image !== 'default.jpg') {
                 // If it's a storage path
