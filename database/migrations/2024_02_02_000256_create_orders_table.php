@@ -21,14 +21,15 @@ return new class extends Migration
             $table->date('date_debut_credit')->nullable();
             $table->date('date_fin_credit')->nullable();
             $table->string('reference_credit')->nullable();
-            $table->string('payment_status')->nullable();//, ['pending', 'paid', 'failed']
-            $table->string('order_status')->nullable();//['processing', 'shipped', 'delivered']
+            $table->string('payment_status')->nullable(); //, ['pending', 'paid', 'failed']
+            $table->string('order_status')->nullable(); //['processing', 'shipped', 'delivered']
             $table->boolean('is_credit')->nullable();
             $table->date('delivery_date')->nullable();
             $table->decimal('total_price', 10, 2);
             $table->decimal('paid_price', 10, 2);
             $table->decimal('remain_price', 10, 2);
             $table->text('notes')->nullable();
+            $table->boolean('is_old_invoice')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

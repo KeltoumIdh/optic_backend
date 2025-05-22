@@ -216,20 +216,37 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        // Validation rules
-        $rules = [
-            'client_id' => 'required|integer',
-            'cart' => 'required|array',
-            'payment_method' => 'required|string|in:cash,credit,check,traita',
-            'date_fin_credit' => 'nullable|date', // Validate if provided and is a date
-            'paid_price' => 'required|numeric|min:0',
-            'remain_price' => 'required|numeric|min:0',
-            'total_price' => 'required|numeric|min:0',
-            'reference_credit' => 'nullable|string', // Validate if provided and is a string
-            'file' => 'nullable|string',
-            'client_traita' => 'nullable|string',
-            'traita_date' => 'nullable|date',
-        ];
+        // Check if this is an old invoice
+        if ($request->input('is_old_invoice')) {
+            // Validation rules for old invoices
+            $rules = [
+                'client_id' => 'required|integer',
+                'total_price' => 'required|numeric|min:0',
+                'paid_price' => 'required|numeric|min:0',
+                'remain_price' => 'required|numeric|min:0',
+                'payment_method' => 'required|string|in:cash,credit,check,traita',
+                'reference_credit' => 'nullable|string',
+                'date_fin_credit' => 'nullable|date',
+                'file' => 'nullable|string',
+                'client_traita' => 'nullable|string',
+                'traita_date' => 'nullable|date',
+            ];
+        } else {
+            // Existing validation rules for normal invoices
+            $rules = [
+                'client_id' => 'required|integer',
+                'cart' => 'required|array',
+                'payment_method' => 'required|string|in:cash,credit,check,traita',
+                'date_fin_credit' => 'nullable|date',
+                'paid_price' => 'required|numeric|min:0',
+                'remain_price' => 'required|numeric|min:0',
+                'total_price' => 'required|numeric|min:0',
+                'reference_credit' => 'nullable|string',
+                'file' => 'nullable|string',
+                'client_traita' => 'nullable|string',
+                'traita_date' => 'nullable|date',
+            ];
+        }
 
         // Custom error messages
         $messages = [
@@ -251,44 +268,37 @@ class OrderController extends Controller
 
         $order = new Order();
         $order->client_id = $request->input('client_id');
-        $order->cart = json_encode($request->input('cart'));
         $order->payment_method = $request->input('payment_method');
         $order->is_credit = $request->input('isCredit');
-        $order->date_fin_credit = $request->input('date_fin_credit');
-        $order->reference_credit = $request->input('reference_credit');
         $order->paid_price = $request->input('paid_price');
         $order->remain_price = $request->input('remain_price');
-        $order->date_debut_credit = Carbon::now();
         $order->total_price = $request->input('total_price');
-        $order->traita_date = $request->input('traita_date');
-        $order->payement_file = $filePath;
-        $order->client_traita = $request->input('client_traita');
+        $order->is_old_invoice = $request->input('is_old_invoice', false);
 
-        if ($request->input('is_credit') === false) {
-            $order->payment_status = 'completed';
-        } else {
-            $order->payment_status = 'pending';
+        // Add these fields for both old and new invoices if payment method is credit/traita/check
+        if (in_array($request->input('payment_method'), ['credit', 'traita', 'check'])) {
+            $order->date_fin_credit = $request->input('date_fin_credit');
+            $order->reference_credit = $request->input('reference_credit');
+            $order->date_debut_credit = Carbon::now();
+            $order->traita_date = $request->input('traita_date');
+            $order->payement_file = $filePath;
+            $order->client_traita = $request->input('client_traita');
         }
 
-        // Check if the payment is made in full
+        // Only set cart for non-old invoices
+        if (!$request->input('is_old_invoice')) {
+            $order->cart = json_encode($request->input('cart'));
+        }
+
+        // Set payment status
         if ($request->input('paid_price') >= $request->input('total_price')) {
             $order->payment_status = 'completed';
         } else {
             $order->payment_status = 'pending';
         }
 
-        $order->order_status = 'in_delivery';
-
-        // payment_status:
-        // Pending: The payment has been initiated but not completed.
-        // Completed: The payment has been successfully processed.
-        // Failed: The payment processing has failed.
-
-        // order_status:
-        // Processing: The order has been received and is being processed.
-        // Shipped: The order has been shipped to the customer.
-        // Delivered: The order has been successfully delivered to the customer.
-        // Cancelled: The order has been cancelled.
+        // Set order status
+        $order->order_status = $request->input('is_old_invoice') ? 'delivered' : 'in_delivery';
 
         if ($order->save()) {
             $order->load('client');
@@ -298,20 +308,18 @@ class OrderController extends Controller
                 "data" => [
                     "new_data" => array_merge(
                         $order->only('id', 'client_id', 'cart'),
-                        ['client' => $order->client->only('id', 'name')] // Include client data
+                        ['client' => $order->client->only('id', 'name')]
                     ),
                     "old_data" => [],
                 ]
             ]);
 
-
-            // update the ordered products
-            $this->updateProductQNT($request->cart["productsCart"]);
+            // Update product quantities only for non-old invoices
+            if (!$request->input('is_old_invoice') && isset($request->cart["productsCart"])) {
+                $this->updateProductQNT($request->cart["productsCart"]);
+            }
         }
 
-
-
-        // return redirect('/orders')->with('status', 'Order created successfully');
         return response()->json(['status' => 'Order created successfully']);
     }
 
