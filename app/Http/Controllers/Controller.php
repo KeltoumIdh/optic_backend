@@ -126,6 +126,8 @@ abstract class Controller
 
             "order_1" => "new_order",
             "order_2" => "order_updated",
+
+            "payment_1" => "client_payment_added",
         ];
 
         $logType = isset($arr["type"]) ? $logsTypes[$arr["type"]] : 'unknown';

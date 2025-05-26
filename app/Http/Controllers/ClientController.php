@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\Order;
+use App\Models\Payment;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -273,17 +274,23 @@ class ClientController extends Controller
      */
     public function show($id)
     {
-        // Retrieve the product details by its ID
+        // Retrieve the client details by its ID
         $client = Client::find($id);
 
-        // Retrieve all orders that contain the client
-        $clientOrders = Order::where('client_id', $id)->get();
+        // Retrieve all orders that contain the client, sorted by newest first
+        $clientOrders = Order::where('client_id', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
+        // Retrieve all payments for the client, sorted by newest first
+        $payments = Payment::where('client_id', $id)
+            ->orderBy('payment_date', 'desc')
+            ->get();
 
-        // You can customize the response format as needed
         return response()->json([
             'client' => $client,
-            'orders' => $clientOrders
+            'orders' => $clientOrders,
+            'payments' => $payments
         ], 200);
     }
 
@@ -310,5 +317,83 @@ class ClientController extends Controller
         $clients = $productsQuery->paginate(50);
 
         return view('admin.clients.index', compact('clients'));
+    }
+
+    public function addPayment(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:0',
+            'payment_date' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $client = Client::find($id);
+
+        if (!$client) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Client not found',
+            ], 404);
+        }
+
+        $paymentAmount = $request->input('amount');
+        $paymentDate = $request->input('payment_date');
+
+        // Create payment record
+        $payment = Payment::create([
+            'client_id' => $id,
+            'amount' => $paymentAmount,
+            'payment_date' => $paymentDate
+        ]);
+
+        // Get all orders for this client
+        $orders = Order::where('client_id', $id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $remainingPayment = $paymentAmount;
+
+        // Update paid_price for each order until the payment is fully distributed
+        foreach ($orders as $order) {
+            if ($remainingPayment <= 0) break;
+
+            $currentRemaining = $order->total_price - $order->paid_price;
+
+            if ($currentRemaining > 0) {
+                $amountToApply = min($remainingPayment, $currentRemaining);
+                $order->paid_price += $amountToApply;
+                $order->remain_price = $order->total_price - $order->paid_price;
+                $order->save();
+
+                $remainingPayment -= $amountToApply;
+            }
+        }
+
+        // Save this activity
+        $this->saveThisMove([
+            "type" => 'payment_1',
+            "data" => [
+                "new_data" => [
+                    "id" => $id,
+                    "amount" => $paymentAmount,
+                    "payment_date" => $paymentDate,
+                ],
+                "old_data" => [],
+            ]
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Payment added successfully',
+            'amount_applied' => $paymentAmount - $remainingPayment,
+            'amount_remaining' => $remainingPayment,
+            'payment' => $payment
+        ]);
     }
 }

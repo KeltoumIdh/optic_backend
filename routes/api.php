@@ -39,6 +39,7 @@ Route::controller(ClientController::class)->group(function () {
         Route::post('/clients/update/{id}', 'update');
         Route::delete('/clients/delete/{id}', 'delete');
         Route::get('/clients/details/{id}', 'show');
+        Route::post('/clients/payments/{id}', 'addPayment');
     });
 });
 
